@@ -1,0 +1,5 @@
+{
+  "name": "Simulacrum",
+  "description": "A dynamic concept simulator that generates interactive P5.js simulations from natural language descriptions using Gemini.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"]
+}

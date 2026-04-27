@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Simulation": {
+      "title": "Simulation",
+      "description": "A generated P5.js simulation",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "concept": { "type": "string" },
+        "code": { "type": "string" },
+        "controls": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "concept", "code"]
+    },
+    "GeneratedAsset": {
+      "title": "Generated Asset",
+      "description": "An AI generated image or video",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["image", "video"] },
+        "url": { "type": "string" },
+        "prompt": { "type": "string" },
+        "model": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "url", "prompt"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "A message in a chat conversation",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "model"] },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "role", "content"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/simulations/{simulationId}": {
+      "schema": "Simulation",
+      "description": "Saved simulations"
+    },
+    "/assets/{assetId}": {
+      "schema": "GeneratedAsset",
+      "description": "Generated images and videos"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Chat history"
+    }
+  }
+}
