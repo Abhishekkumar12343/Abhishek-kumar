@@ -3,7 +3,7 @@ import cors from "cors";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import * as gemini from "../server/gemini";
+import * as gemini from "./api/lib/gemini";
 
 dotenv.config();
 
@@ -14,7 +14,7 @@ async function startServer() {
   app.use(cors());
   app.use(express.json({ limit: '10mb' }));
 
-  // Gemini API Proxy
+  // Gemini API Proxy for development
   app.post("/api/gemini", async (req, res) => {
     try {
       const { action, params } = req.body;
@@ -68,18 +68,9 @@ async function startServer() {
     });
   }
 
-  // Export app for Vercel
-  if (process.env.NODE_ENV !== "production") {
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  }
-  
-  return app;
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
 }
 
-const appPromise = startServer();
-export default async (req: express.Request, res: express.Response) => {
-  const app = await appPromise;
-  return app(req, res);
-};
+startServer();
