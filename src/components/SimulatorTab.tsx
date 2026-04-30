@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Sparkles, Sliders, Loader2, Info, RefreshCw, Save, Check, Library, Trash2, Upload, X, Download } from 'lucide-react';
+import { Play, Sparkles, Sliders, Loader2, Info, RefreshCw, Save, Check, Library, Trash2, Upload, X, Download, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SimulationSandbox from './SimulationSandbox';
 import { Control, Simulation } from '../types';
@@ -26,6 +26,7 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
   const [error, setError] = useState<string | null>(null);
   const [savedSimulations, setSavedSimulations] = useState<Simulation[]>([]);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadingPhrases = [
@@ -56,6 +57,14 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
       }
     }
   }, [initialSimulation]);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsFullscreen(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -122,6 +131,7 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
       await addDoc(collection(db, path), {
         userId: auth.currentUser.uid,
         concept: simulation.concept,
+        explanation: simulation.explanation || null,
         code: simulation.code,
         controls: simulation.controls,
         createdAt: serverTimestamp()
@@ -176,10 +186,11 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-8 h-full">
-      <div className="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
-        <section className="bg-white/5 rounded-2xl p-6 border border-white/10 shrink-0">
-          <h2 className="text-sm font-medium text-white/60 mb-4 flex items-center gap-2">
+    <div className="flex flex-col lg:grid lg:grid-cols-[400px_1fr] gap-6 md:gap-8 h-full min-h-0">
+      {/* Sidebar Controls */}
+      <div className="flex flex-col gap-6 overflow-y-auto lg:pr-2 custom-scrollbar order-2 lg:order-1">
+        <section className="bg-white/5 rounded-2xl p-5 md:p-6 border border-white/10 shrink-0">
+          <h2 className="text-xs md:text-sm font-medium text-white/60 mb-4 flex items-center gap-2">
             <Sparkles className="w-4 h-4" />
             Define Concept or Analyze Image
           </h2>
@@ -188,7 +199,7 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
             {!image ? (
               <div 
                 onClick={() => fileInputRef.current?.click()}
-                className="group relative border-2 border-dashed border-white/5 hover:border-indigo-500/50 hover:bg-indigo-500/5 rounded-2xl p-6 transition-all cursor-pointer text-center"
+                className="group relative border-2 border-dashed border-white/5 hover:border-indigo-500/50 hover:bg-indigo-500/5 rounded-2xl p-5 md:p-6 transition-all cursor-pointer text-center"
               >
                 <input 
                   type="file" 
@@ -197,11 +208,11 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
                   className="hidden" 
                   accept="image/*"
                 />
-                <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-indigo-500/20 group-hover:scale-110 transition-all">
-                  <Upload className="w-5 h-5 text-white/40 group-hover:text-indigo-400" />
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-indigo-500/20 group-hover:scale-110 transition-all">
+                  <Upload className="w-4 h-4 md:w-5 md:h-5 text-white/40 group-hover:text-indigo-400" />
                 </div>
-                <p className="text-xs font-medium text-white/40 group-hover:text-white/60">Upload photo of a machine or item</p>
-                <p className="text-[10px] text-white/20 mt-1 uppercase tracking-tighter font-bold">to analyze and simulate</p>
+                <p className="text-[11px] md:text-xs font-medium text-white/40 group-hover:text-white/60">Upload photo of a machine or item</p>
+                <p className="text-[9px] md:text-[10px] text-white/20 mt-1 uppercase tracking-tighter font-bold">to analyze and simulate</p>
               </div>
             ) : (
               <div className="relative group rounded-2xl overflow-hidden aspect-video bg-black border border-white/10">
@@ -222,21 +233,21 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
               value={concept}
               onChange={(e) => setConcept(e.target.value)}
               placeholder={image ? "Describe what to simulate from this image (optional)..." : "e.g., Brownian motion of particles in a gas, or a double pendulum system..."}
-              className="w-full bg-black border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all min-h-[120px] resize-none placeholder:text-white/20"
+              className="w-full bg-black border border-white/10 rounded-xl p-3 md:p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all min-h-[100px] md:min-h-[120px] resize-none placeholder:text-white/20"
             />
             <button
               type="submit"
               disabled={loading || (!concept.trim() && !image)}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/10"
+              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white font-semibold py-2.5 md:py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/10 text-sm"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                   Analyzing & Generating...
                 </>
               ) : (
                 <>
-                  <Play className="w-5 h-5" />
+                  <Play className="w-4 h-4 md:w-5 md:h-5" />
                   {image ? 'Analyze & Simulate' : 'Generate Simulation'}
                 </>
               )}
@@ -246,9 +257,9 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-start gap-2"
+              className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-[11px] flex items-start gap-2"
             >
-              <Info className="w-4 h-4 shrink-0 mt-0.5" />
+              <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               {error}
             </motion.div>
           )}
@@ -256,84 +267,102 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
 
         <AnimatePresence mode="wait">
           {simulation && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-white/5 rounded-2xl p-6 border border-white/10 shrink-0"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-sm font-medium text-white/60 flex items-center gap-2">
-                  <Sliders className="w-4 h-4" />
-                  Parameters
-                </h2>
-                <button 
-                  onClick={() => {
-                    const reset: Record<string, number> = {};
-                    simulation.controls.forEach(c => reset[c.name] = c.default);
-                    setControlValues(reset);
-                  }}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors"
+            <div className="space-y-4 md:space-y-6">
+              {simulation.explanation && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-indigo-500/10 rounded-2xl p-5 md:p-6 border border-indigo-500/20 shrink-0"
                 >
-                  <RefreshCw className="w-3 h-3" />
-                  Reset
-                </button>
-              </div>
+                  <h2 className="text-xs md:text-sm font-medium text-indigo-300 mb-2 flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    Scientific Explanation
+                  </h2>
+                  <p className="text-[11px] md:text-xs text-white/70 leading-relaxed italic">
+                    {simulation.explanation}
+                  </p>
+                </motion.section>
+              )}
 
-              <div className="space-y-8">
-                {simulation.controls.length > 0 ? (
-                  simulation.controls.map((control) => (
-                    <div key={control.name} className="space-y-3">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-white/80 font-mono">{control.name}</span>
-                        <span className="text-indigo-400 font-mono">{controlValues[control.name]?.toFixed(2)}</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={control.min}
-                        max={control.max}
-                        step={(control.max - control.min) / 100}
-                        value={controlValues[control.name] ?? control.default}
-                        onChange={(e) => handleControlChange(control.name, parseFloat(e.target.value))}
-                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all"
-                      />
-                      <div className="flex justify-between text-[10px] text-white/20 font-mono">
-                        <span>{control.min}</span>
-                        <span>{control.max}</span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-white/20 italic text-sm">
-                    No adjustable parameters found for this simulation.
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-3 mt-4">
-                  <button
-                    onClick={handleSave}
-                    disabled={saveLoading || !auth.currentUser}
-                    className="bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-50 text-white font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-xs"
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-white/5 rounded-2xl p-5 md:p-6 border border-white/10 shrink-0"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xs md:text-sm font-medium text-white/60 flex items-center gap-2">
+                    <Sliders className="w-4 h-4" />
+                    Parameters
+                  </h2>
+                  <button 
+                    onClick={() => {
+                      const reset: Record<string, number> = {};
+                      simulation.controls.forEach(c => reset[c.name] = c.default);
+                      setControlValues(reset);
+                    }}
+                    className="text-[10px] md:text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors"
                   >
-                    {saveLoading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                    {saveLoading ? 'Saving...' : 'Save'}
-                  </button>
-                  <button
-                    onClick={handleExport}
-                    className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-xs"
-                  >
-                    <Download size={14} />
-                    Export .js
+                    <RefreshCw className="w-3 h-3" />
+                    Reset
                   </button>
                 </div>
-              </div>
-            </motion.section>
+
+                <div className="space-y-6 md:space-y-8">
+                  {simulation.controls.length > 0 ? (
+                    simulation.controls.map((control) => (
+                      <div key={control.name} className="space-y-3">
+                        <div className="flex justify-between text-[11px] md:text-xs">
+                          <span className="text-white/80 font-mono">{control.name}</span>
+                          <span className="text-indigo-400 font-mono">{controlValues[control.name]?.toFixed(2)}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={control.min}
+                          max={control.max}
+                          step={(control.max - control.min) / 100}
+                          value={controlValues[control.name] ?? control.default}
+                          onChange={(e) => handleControlChange(control.name, parseFloat(e.target.value))}
+                          className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all"
+                        />
+                        <div className="flex justify-between text-[9px] md:text-[10px] text-white/20 font-mono">
+                          <span>{control.min}</span>
+                          <span>{control.max}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-6 md:py-8 text-white/20 italic text-sm">
+                      No adjustable parameters found for this simulation.
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <button
+                      onClick={handleSave}
+                      disabled={saveLoading || !auth.currentUser}
+                      className="bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-50 text-white font-medium py-2 md:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-[11px] md:text-xs"
+                    >
+                      {saveLoading ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                      {saveLoading ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      onClick={handleExport}
+                      className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-2 md:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-[11px] md:text-xs"
+                    >
+                      <Download size={12} />
+                      Export .js
+                    </button>
+                  </div>
+                </div>
+              </motion.section>
+            </div>
           )}
         </AnimatePresence>
 
         {/* Saved Simulations Library */}
-        <section className="bg-white/5 rounded-2xl p-6 border border-white/10 flex-1 flex flex-col min-h-0">
-          <h2 className="text-sm font-medium text-white/60 mb-4 flex items-center gap-2 shrink-0">
+        <section className="bg-white/5 rounded-2xl p-5 md:p-6 border border-white/10 flex-col min-h-[300px] hidden lg:flex">
+          <h2 className="text-xs md:text-sm font-medium text-white/60 mb-4 flex items-center gap-2 shrink-0">
             <Library className="w-4 h-4" />
             My Collection
           </h2>
@@ -372,9 +401,9 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
                 My Saved
               </div>
               {savedSimulations.length === 0 ? (
-                <div className="h-64 flex flex-col items-center justify-center text-center p-4 opacity-20 border border-dashed border-white/10 rounded-xl">
-                  <Library size={32} className="mb-2" />
-                  <p className="text-xs">Your saved simulations will appear here</p>
+                <div className="h-48 flex flex-col items-center justify-center text-center p-4 opacity-20 border border-dashed border-white/10 rounded-xl">
+                  <Library size={24} className="mb-2" />
+                  <p className="text-[11px]">Your saved simulations will appear here</p>
                 </div>
               ) : (
                 savedSimulations.map((sim) => (
@@ -420,18 +449,33 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
         </section>
       </div>
 
-      <div className="relative h-full min-h-[400px]">
+      <div className={cn(
+        "relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-full min-h-0 order-1 lg:order-2",
+        isFullscreen && "fixed inset-0 z-[100] bg-black p-4 h-screen sm:h-screen md:h-screen lg:h-screen"
+      )}>
+        {!loading && simulation && (
+          <div className="absolute top-4 right-4 z-[101] flex gap-2">
+            <button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="p-2 md:p-3 bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-xl text-white/70 hover:text-white border border-white/10 transition-all shadow-xl"
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            >
+              {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </button>
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
-          {loading && (
+          {loading ? (
             <motion.div
               key="loading-overlay"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center p-12 overflow-hidden"
+              className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center p-8 md:p-12 overflow-hidden"
             >
               {/* Pulse Core Animation */}
-              <div className="relative mb-12">
+              <div className="relative mb-8 md:mb-12 scale-75 md:scale-100">
                 <motion.div 
                   animate={{ 
                     scale: [1, 1.2, 1],
@@ -442,7 +486,7 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
                     repeat: Infinity,
                     ease: "easeInOut"
                   }}
-                  className="w-24 h-24 bg-indigo-500/20 rounded-full blur-2xl"
+                  className="w-20 h-20 md:w-24 md:h-24 bg-indigo-500/20 rounded-full blur-2xl"
                 />
                 <motion.div 
                   animate={{ rotate: 360 }}
@@ -450,7 +494,7 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
                   className="absolute inset-0 border border-indigo-500/30 rounded-full border-dashed"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Sparkles className="w-8 h-8 text-indigo-400 animate-pulse" />
+                  <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-indigo-400 animate-pulse" />
                 </div>
               </div>
 
@@ -461,13 +505,13 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="text-sm font-medium text-white/90"
+                    className="text-xs md:text-sm font-medium text-white/90"
                   >
                     {loadingPhrases[loadingStep]}
                   </motion.p>
                 </AnimatePresence>
                 
-                <div className="w-48 h-1 bg-white/5 rounded-full mx-auto overflow-hidden">
+                <div className="w-32 md:w-48 h-1 bg-white/5 rounded-full mx-auto overflow-hidden">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: "100%" }}
@@ -479,20 +523,18 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
                     className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
                   />
                 </div>
-                <p className="text-[10px] text-white/20 uppercase tracking-[0.2em] font-bold">
+                <p className="text-[8px] md:text-[10px] text-white/20 uppercase tracking-[0.2em] font-bold">
                   Neural Synthesis in Progress
                 </p>
               </div>
             </motion.div>
-          )}
-
-          {simulation ? (
+          ) : simulation ? (
             <motion.div
               key="simulation"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="w-full h-full"
+              className="w-full h-full rounded-2xl overflow-hidden"
             >
               <SimulationSandbox code={simulation.code} controlValues={controlValues} />
             </motion.div>
@@ -501,19 +543,65 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
               key="placeholder"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="w-full h-full bg-white/5 rounded-2xl border border-dashed border-white/10 flex flex-col items-center justify-center text-center p-12"
+              exit={{ opacity: 0 }}
+              className="w-full h-full bg-white/5 rounded-2xl border border-dashed border-white/10 flex flex-col items-center justify-center text-center p-8 md:p-12"
             >
-              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                <Sparkles className="w-8 h-8 text-white/20" />
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 md:mb-6">
+                <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-white/20" />
               </div>
-              <h3 className="text-lg font-medium text-white/60 mb-2">Ready to Simulate</h3>
-              <p className="text-sm text-white/30 max-w-xs">
+              <h3 className="text-base md:text-lg font-medium text-white/60 mb-2">Ready to Simulate</h3>
+              <p className="text-[11px] md:text-sm text-white/30 max-w-xs">
                 Enter a scientific concept on the left to generate an interactive P5.js simulation.
               </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      {/* Mobile Library (Visible only on small screens) */}
+      <section className="lg:hidden bg-white/5 rounded-2xl p-5 border border-white/10 flex flex-col order-3 mt-4">
+        <h2 className="text-xs font-medium text-white/60 mb-4 flex items-center gap-2">
+          <Library className="w-4 h-4" />
+          My Collection
+        </h2>
+        <div className="max-h-64 overflow-y-auto space-y-3 custom-scrollbar pr-2">
+          {/* Reuse logic for mobile simulation list */}
+          <div className="space-y-3 pb-4">
+            <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest px-1">Featured</div>
+            {FEATURED_SIMULATIONS.slice(0, 3).map((sim) => (
+              <button
+                key={sim.id}
+                onClick={() => {
+                  loadSimulation(sim);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="w-full text-left p-3 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3"
+              >
+                <Play className="w-3 h-3 text-indigo-400" />
+                <p className="text-xs font-medium text-white/80 truncate">{sim.concept}</p>
+              </button>
+            ))}
+          </div>
+          {savedSimulations.length > 0 && (
+            <div className="space-y-3">
+              <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest px-1">Saved</div>
+              {savedSimulations.slice(0, 5).map((sim) => (
+                <button
+                  key={sim.id}
+                  onClick={() => {
+                    loadSimulation(sim);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="w-full text-left p-3 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3"
+                >
+                  <Play className="w-3 h-3 text-indigo-400" />
+                  <p className="text-xs font-medium text-white/80 truncate">{sim.concept}</p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };

@@ -10,6 +10,7 @@ export interface Simulation {
   id?: string;
   userId?: string;
   concept: string;
+  explanation?: string;
   code: string;
   controls: Control[];
   createdAt?: string;

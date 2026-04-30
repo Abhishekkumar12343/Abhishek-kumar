@@ -181,6 +181,8 @@ OUTPUT RULES:
      }
    });
    This means your variables MUST be global (defined with 'var' or attached to 'window') so they can be updated by the listener. Use 'var' for all variables that need to be controlled.
+8. Include a brief, 2-3 sentence scientific/physical explanation of the concept in a comment starting with "// @explanation:".
+   Example: // @explanation: Brownian motion is the random motion of particles suspended in a medium (a liquid or a gas) resulting from their collision with the fast-moving molecules in the fluid.
 `;
 
   const parts: any[] = [{ text: `Generate a P5.js simulation for: ${concept || "the mechanism shown in the image"}` }];
@@ -213,6 +215,10 @@ OUTPUT RULES:
     finalConcept = titleMatch ? titleMatch[1].trim() : "Visual Analysis Simulation";
   }
 
+  // Parse explanation
+  const explanationMatch = text.match(/\/\/\s*@explanation:\s*(.*)/i);
+  const explanation = explanationMatch ? explanationMatch[1].trim() : undefined;
+
   // More robust code extraction: find the first javascript or js code block, or fall back to the whole text
   let cleanCode = text;
   const codeBlockRegex = /```(?:javascript|js)?\n([\s\S]*?)```/;
@@ -239,5 +245,5 @@ OUTPUT RULES:
     });
   }
 
-  return { code: cleanCode, controls, concept: finalConcept };
+  return { code: cleanCode, controls, concept: finalConcept, explanation };
 };

@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { cn } from '../lib/utils';
 
 interface SimulationSandboxProps {
   code: string;
   controlValues: Record<string, number>;
+  plain?: boolean;
 }
 
-const SimulationSandbox: React.FC<SimulationSandboxProps> = ({ code, controlValues }) => {
+const SimulationSandbox: React.FC<SimulationSandboxProps> = ({ code, controlValues, plain = false }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -34,6 +36,13 @@ const SimulationSandbox: React.FC<SimulationSandboxProps> = ({ code, controlValu
 
           // Notify parent that we are ready
           window.parent.postMessage({ type: 'SANDBOX_READY' }, '*');
+
+          // Handle resizing
+          window.addEventListener('resize', () => {
+            if (typeof resizeCanvas === 'function') {
+              resizeCanvas(window.innerWidth, window.innerHeight);
+            }
+          });
 
           // The generated code
           try {
@@ -73,7 +82,10 @@ const SimulationSandbox: React.FC<SimulationSandboxProps> = ({ code, controlValu
   }, [controlValues, isReady]);
 
   return (
-    <div className="w-full h-full bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+    <div className={cn(
+      "w-full h-full bg-black overflow-hidden",
+      !plain && "rounded-2xl shadow-2xl border border-white/10"
+    )}>
       <iframe
         ref={iframeRef}
         title="Simulation Sandbox"

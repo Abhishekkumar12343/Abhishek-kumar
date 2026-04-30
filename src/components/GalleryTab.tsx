@@ -11,13 +11,15 @@ import {
   Filter,
   Download,
   Calendar,
-  Loader2
+  Loader2,
+  Play
 } from 'lucide-react';
 import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { Simulation, GeneratedAsset } from '../types';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
+import SimulationSandbox from './SimulationSandbox';
 
 type AssetType = 'all' | 'simulation' | 'image' | 'video';
 
@@ -31,6 +33,7 @@ export default function GalleryTab({ onLoadSimulation }: GalleryTabProps) {
   const [simulations, setSimulations] = useState<Simulation[]>([]);
   const [assets, setAssets] = useState<GeneratedAsset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -160,6 +163,8 @@ export default function GalleryTab({ onLoadSimulation }: GalleryTabProps) {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
+                  onMouseEnter={() => setHoveredId(item.id!)}
+                  onMouseLeave={() => setHoveredId(null)}
                   className="group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 hover:bg-white/10 transition-all flex flex-col"
                 >
                   {/* Preview Area */}
@@ -182,9 +187,32 @@ export default function GalleryTab({ onLoadSimulation }: GalleryTabProps) {
                       />
                     )}
                     {item.galleryType === 'simulation' && (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-indigo-500/5">
-                        <LayoutDashboard className="w-10 h-10 text-indigo-400 opacity-50" />
-                        <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Simulation</span>
+                      <div className="w-full h-full relative">
+                        {hoveredId === item.id ? (
+                          <div className="w-full h-full">
+                            <SimulationSandbox 
+                              plain
+                              code={(item as Simulation).code} 
+                              controlValues={
+                                (item as Simulation).controls.reduce((acc, curr) => ({ ...acc, [curr.name]: curr.default }), {})
+                              } 
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-indigo-500/5">
+                            <div className="relative">
+                              <LayoutDashboard className="w-10 h-10 text-indigo-400 opacity-40" />
+                              <motion.div 
+                                animate={{ opacity: [0, 1, 0] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                className="absolute inset-0 flex items-center justify-center"
+                              >
+                                <Play size={16} className="text-indigo-400 ml-1" />
+                              </motion.div>
+                            </div>
+                            <span className="text-[10px] font-bold text-indigo-400/60 uppercase tracking-widest">Hover to Preview</span>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -240,6 +268,12 @@ export default function GalleryTab({ onLoadSimulation }: GalleryTabProps) {
                          <Video size={14} />}
                       </div>
                     </div>
+
+                    {item.galleryType === 'simulation' && (item as Simulation).explanation && (
+                      <p className="text-[11px] text-white/40 line-clamp-3 italic mb-4 leading-relaxed">
+                        {(item as Simulation).explanation}
+                      </p>
+                    )}
 
                     <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
                       <div className="flex items-center gap-1.5 text-[10px] text-white/30 font-medium">

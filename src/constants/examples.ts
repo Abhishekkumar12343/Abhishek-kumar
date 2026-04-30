@@ -4,6 +4,7 @@ export const FEATURED_SIMULATIONS: Simulation[] = [
   {
     id: 'example-particle-system',
     concept: 'Autonomous Particle System',
+    explanation: 'A particle system simulating autonomous agents moving in a 2D space. Lines are drawn between nearby particles to visualize proximity and network connectivity, creating a dynamic web-like structure.',
     code: `
       var particles = [];
       var numParticles = 200;
@@ -86,6 +87,7 @@ export const FEATURED_SIMULATIONS: Simulation[] = [
   {
     id: 'example-fractal-tree',
     concept: 'Recursive Fractal Tree',
+    explanation: 'A fractal tree demonstration using recursive functions. Each branch splits into two smaller branches at a defined angle, illustrating how simple mathematical rules can regenerate complex patterns found in nature.',
     code: `
       var angle = 0.52;
       var lengthFactor = 0.67;
@@ -145,6 +147,7 @@ export const FEATURED_SIMULATIONS: Simulation[] = [
   {
     id: 'example-wave-interference',
     concept: 'Double Slit Interference',
+    explanation: 'A visualization of wave interference patterns, similar to the ripple patterns seen from two point sources. It demonstrates constructive and destructive interference as waves overlap in space.',
     code: `
       var freq = 0.05;
       var waveSpeed = 0.1;
