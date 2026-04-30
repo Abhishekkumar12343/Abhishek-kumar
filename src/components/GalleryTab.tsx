@@ -12,7 +12,8 @@ import {
   Download,
   Calendar,
   Loader2,
-  Play
+  Play,
+  ArrowLeft
 } from 'lucide-react';
 import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
@@ -104,83 +105,79 @@ export default function GalleryTab({ onLoadSimulation }: GalleryTabProps) {
   });
 
   return (
-    <div className="h-full flex flex-col space-y-6 overflow-hidden">
-      {/* Search & Filter Header */}
-      <header className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between shrink-0">
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <div className="relative flex-1 md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-            <input
-              type="text"
-              placeholder="Search your collection..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-black/50 border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-            />
-          </div>
+    <div className="h-full flex flex-col gap-8">
+      {/* Search and Filters */}
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between glass p-4 md:p-6 rounded-3xl shrink-0">
+        <div className="relative flex-1 w-full md:max-w-md group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-indigo-400 transition-colors" />
+          <input
+            type="text"
+            placeholder="Search library..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-black/40 border border-white/5 focus:border-indigo-500/30 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-white/10"
+          />
         </div>
 
-        <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/5 w-full md:w-auto overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto custom-scrollbar pb-2 md:pb-0">
           {(['all', 'simulation', 'image', 'video'] as const).map((type) => (
             <button
               key={type}
               onClick={() => setActiveType(type)}
               className={cn(
-                "px-4 py-1.5 rounded-lg text-xs font-medium capitalize transition-all whitespace-nowrap",
-                activeType === type 
-                  ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20" 
-                  : "text-white/40 hover:text-white/60 hover:bg-white/5"
+                "px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap",
+                activeType === type
+                  ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                  : "bg-white/5 text-white/40 hover:text-white/60 hover:bg-white/10 border border-white/5"
               )}
             >
               {type}s
             </button>
           ))}
         </div>
-      </header>
+      </div>
 
       {/* Main Grid Area */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-12">
         {loading ? (
-          <div className="h-64 flex flex-col items-center justify-center text-white/20 gap-4">
-            <Loader2 className="w-8 h-8 animate-spin" />
-            <p className="text-sm">Loading collection...</p>
+          <div className="h-full flex flex-col items-center justify-center gap-4 opacity-50">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/20">Accessing Data Stores...</p>
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="h-64 flex flex-col items-center justify-center text-white/20 gap-4 border border-dashed border-white/5 rounded-3xl">
-            <Library size={48} strokeWidth={1} />
-            <div className="text-center">
-              <p className="text-sm font-medium text-white/40">No items found</p>
-              <p className="text-xs">Start creating to build your collection</p>
-            </div>
+          <div className="h-full flex flex-col items-center justify-center text-center p-12 opacity-20 border-2 border-dashed border-white/5 rounded-[3rem]">
+            <Library className="w-16 h-16 mb-4" />
+            <h3 className="text-xl font-display font-medium text-white mb-2">No assets found</h3>
+            <p className="text-sm max-w-xs">Start generating simulations to build your personal library.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 md:gap-8 pb-12">
             <AnimatePresence mode="popLayout">
               {filteredItems.map((item) => (
                 <motion.div
                   layout
                   key={item.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   onMouseEnter={() => setHoveredId(item.id!)}
                   onMouseLeave={() => setHoveredId(null)}
-                  className="group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 hover:bg-white/10 transition-all flex flex-col"
+                  className="group relative glass-dark border border-white/5 rounded-[2rem] overflow-hidden hover:border-indigo-500/30 transition-all flex flex-col shadow-xl"
                 >
                   {/* Preview Area */}
-                  <div className="aspect-video relative bg-black/50 overflow-hidden">
+                  <div className="aspect-video relative bg-black/40 overflow-hidden group-hover:bg-black/60 transition-colors">
                     {item.galleryType === 'image' && (
                       <img 
                         src={(item as GeneratedAsset).url} 
                         alt="Generated" 
                         referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover" 
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" 
                       />
                     )}
                     {item.galleryType === 'video' && (
                       <video 
                         src={(item as GeneratedAsset).url} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                         loop muted
                         onMouseOver={e => e.currentTarget.play()}
                         onMouseOut={e => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
@@ -199,34 +196,34 @@ export default function GalleryTab({ onLoadSimulation }: GalleryTabProps) {
                             />
                           </div>
                         ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-indigo-500/5">
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-indigo-500/[0.02]">
                             <div className="relative">
-                              <LayoutDashboard className="w-10 h-10 text-indigo-400 opacity-40" />
+                              <LayoutDashboard className="w-10 h-10 text-indigo-400 opacity-20" />
                               <motion.div 
                                 animate={{ opacity: [0, 1, 0] }}
                                 transition={{ duration: 2, repeat: Infinity }}
                                 className="absolute inset-0 flex items-center justify-center"
                               >
-                                <Play size={16} className="text-indigo-400 ml-1" />
+                                <Play size={16} className="text-indigo-400 ml-1 translate-x-px" />
                               </motion.div>
                             </div>
-                            <span className="text-[10px] font-bold text-indigo-400/60 uppercase tracking-widest">Hover to Preview</span>
+                            <span className="text-[9px] font-bold text-indigo-400/40 uppercase tracking-[0.2em]">Live Preview Available</span>
                           </div>
                         )}
                       </div>
                     )}
 
                     {/* Overlay Actions */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-2 translate-y-2 group-hover:translate-y-0 transition-transform">
                       {item.galleryType !== 'simulation' ? (
                         <a 
                           href={(item as GeneratedAsset).url} 
                           target="_blank" 
                           rel="noreferrer"
-                          className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-md"
+                          className="p-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all backdrop-blur-md border border-white/5 active:scale-90"
                           title="Open full size"
                         >
-                          <ExternalLink size={20} />
+                          <ExternalLink size={16} />
                         </a>
                       ) : (
                         <button 
@@ -235,54 +232,50 @@ export default function GalleryTab({ onLoadSimulation }: GalleryTabProps) {
                               onLoadSimulation(item as Simulation);
                             }
                           }}
-                          className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-md"
+                          className="p-2.5 bg-indigo-500 hover:bg-indigo-400 rounded-xl text-white shadow-xl shadow-indigo-500/20 active:scale-90 transition-all font-bold"
                           title="Load in Simulator"
                         >
-                          <LayoutDashboard size={20} />
+                          <Play size={16} className="fill-current" />
                         </button>
                       )}
                       <button 
                         onClick={() => handleDelete(item.id!, item.galleryType === 'simulation' ? 'sim' : 'asset')}
-                        className="p-3 bg-red-500/20 hover:bg-red-500 rounded-full text-red-400 hover:text-white transition-all backdrop-blur-md border border-red-500/30"
+                        className="p-2.5 bg-red-500/10 hover:bg-red-500 rounded-xl text-red-500 hover:text-white transition-all backdrop-blur-md border border-red-500/20 active:scale-90"
                         title="Delete from collection"
                       >
-                        <Trash2 size={20} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
 
                   {/* Info Area */}
-                  <div className="p-4 flex-1 flex flex-col">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className="text-sm font-medium text-white/90 line-clamp-2 leading-relaxed">
-                        {'concept' in item ? item.concept : (item as GeneratedAsset).prompt}
-                      </h3>
-                      <div className={cn(
-                        "p-1.5 rounded-lg shrink-0",
-                        item.galleryType === 'simulation' ? "bg-indigo-500/10 text-indigo-400" :
-                        item.galleryType === 'image' ? "bg-emerald-500/10 text-emerald-400" :
-                        "bg-orange-500/10 text-orange-400"
-                      )}>
-                        {item.galleryType === 'simulation' ? <LayoutDashboard size={14} /> :
-                         item.galleryType === 'image' ? <ImageIcon size={14} /> :
-                         <Video size={14} />}
-                      </div>
-                    </div>
-
-                    {item.galleryType === 'simulation' && (item as Simulation).explanation && (
-                      <p className="text-[11px] text-white/40 line-clamp-3 italic mb-4 leading-relaxed">
-                        {(item as Simulation).explanation}
-                      </p>
-                    )}
-
-                    <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
-                      <div className="flex items-center gap-1.5 text-[10px] text-white/30 font-medium">
-                        <Calendar size={12} strokeWidth={2} />
-                        {item.createdAt && new Date((item.createdAt as any).seconds * 1000).toLocaleDateString()}
-                      </div>
-                      <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest">
+                  <div className="p-5 md:p-6 flex flex-col flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="px-2.5 py-1 rounded-md bg-white/5 border border-white/5 text-[9px] font-bold uppercase tracking-widest text-white/40">
                         {item.galleryType}
                       </div>
+                      <div className="h-0.5 w-0.5 rounded-full bg-white/20" />
+                      <div className="text-[9px] font-mono text-white/20 uppercase">
+                        {item.createdAt ? new Date((item.createdAt as any).seconds * 1000).toLocaleDateString() : 'RECENT'}
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-[13px] font-medium text-white/90 line-clamp-2 leading-relaxed mb-4 flex-1">
+                      {'concept' in item ? item.concept : (item as GeneratedAsset).prompt}
+                    </h3>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                      <div className="flex items-center gap-1.5 opacity-30">
+                        <Calendar size={12} />
+                        <span className="text-[10px] font-mono tracking-tighter uppercase tabular-nums">REF_{item.id?.slice(-4).toUpperCase()}</span>
+                      </div>
+                      <button 
+                        className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1.5 p-2 hover:bg-indigo-500/5 rounded-lg"
+                        onClick={() => item.galleryType === 'simulation' ? (onLoadSimulation && onLoadSimulation(item as Simulation)) : null}
+                      >
+                        Inspect
+                        <ArrowLeft size={12} className="rotate-180" />
+                      </button>
                     </div>
                   </div>
                 </motion.div>

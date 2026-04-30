@@ -3,7 +3,7 @@ import { cn } from '../lib/utils';
 
 interface SimulationSandboxProps {
   code: string;
-  controlValues: Record<string, number>;
+  controlValues: Record<string, number | string>;
   plain?: boolean;
 }
 
@@ -84,7 +84,7 @@ const SimulationSandbox: React.FC<SimulationSandboxProps> = ({ code, controlValu
   return (
     <div className={cn(
       "w-full h-full bg-black overflow-hidden",
-      !plain && "rounded-2xl shadow-2xl border border-white/10"
+      !plain && "rounded-[2rem] shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] neo-border"
     )}>
       <iframe
         ref={iframeRef}

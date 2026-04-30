@@ -171,7 +171,9 @@ OUTPUT RULES:
 3. The code must include setup() and draw() functions.
 4. You MUST expose interactive variables using this exact format at the top of the script:
    // @control Slider(min, max, default) var variableName = value;
+   // @control Color(defaultHex) var variableName = "hex";
    Example: // @control Slider(0, 100, 50) var speed = 50;
+   Example: // @control Color("#4f46e5") var particleColor = "#4f46e5";
 5. The simulation should be visually appealing and educational.
 6. Use window.innerWidth and window.innerHeight for createCanvas if appropriate, but ensure it handles resizing or fits the container.
 7. IMPORTANT: The code will be injected into a sandbox. Listen for messages to update variables:
@@ -231,17 +233,30 @@ OUTPUT RULES:
   }
   
   // Parse control variables using regex
-  const controlRegex = /\/\/\s*@control\s+Slider\(([^,]+),\s*([^,]+),\s*([^)]+)\)\s+(?:var|let|const)\s+(\w+)\s*=\s*([^;]+);/g;
+  const sliderRegex = /\/\/\s*@control\s+Slider\(([^,]+),\s*([^,]+),\s*([^)]+)\)\s+(?:var|let|const)\s+(\w+)\s*=\s*([^;]+);/g;
+  const colorRegex = /\/\/\s*@control\s+Color\(([^)]+)\)\s+(?:var|let|const)\s+(\w+)\s*=\s*([^;]+);/g;
   const controls = [];
   let match;
 
-  while ((match = controlRegex.exec(cleanCode)) !== null) {
+  while ((match = sliderRegex.exec(cleanCode)) !== null) {
     controls.push({
       min: parseFloat(match[1]),
       max: parseFloat(match[2]),
       default: parseFloat(match[3]),
       name: match[4],
       value: parseFloat(match[5]),
+      type: 'range' as const
+    });
+  }
+
+  while ((match = colorRegex.exec(cleanCode)) !== null) {
+    // Remove quotes from match[3] if present
+    const cleanValue = match[3].trim().replace(/^['"](.*)['"]$/, '$1');
+    controls.push({
+      default: cleanValue,
+      name: match[2],
+      value: cleanValue,
+      type: 'color' as const
     });
   }
 

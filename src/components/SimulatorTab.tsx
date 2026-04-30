@@ -22,7 +22,7 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [simulation, setSimulation] = useState<Simulation | null>(null);
-  const [controlValues, setControlValues] = useState<Record<string, number>>({});
+  const [controlValues, setControlValues] = useState<Record<string, number | string>>({});
   const [error, setError] = useState<string | null>(null);
   const [savedSimulations, setSavedSimulations] = useState<Simulation[]>([]);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -109,7 +109,7 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
       const data = await generateSimulation(concept, image || undefined);
       setSimulation(data);
       
-      const initialValues: Record<string, number> = {};
+      const initialValues: Record<string, number | string> = {};
       data.controls.forEach((c: Control) => {
         initialValues[c.name] = c.value;
       });
@@ -159,7 +159,7 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
   const loadSimulation = (sim: Simulation) => {
     setSimulation(sim);
     setConcept(sim.concept);
-    const initialValues: Record<string, number> = {};
+    const initialValues: Record<string, number | string> = {};
     sim.controls.forEach((c: Control) => {
       initialValues[c.name] = c.value;
     });
@@ -181,20 +181,26 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
     toast.success('Simulation code exported!');
   };
 
-  const handleControlChange = (name: string, value: number) => {
+  const handleControlChange = (name: string, value: number | string) => {
     setControlValues(prev => ({ ...prev, [name]: value }));
   };
 
   return (
-    <div className="flex flex-col lg:grid lg:grid-cols-[400px_1fr] gap-6 md:gap-8 h-full min-h-0">
+    <div className="flex flex-col lg:grid lg:grid-cols-[420px_1fr] gap-6 md:gap-10 h-full min-h-0">
       {/* Sidebar Controls */}
-      <div className="flex flex-col gap-6 overflow-y-auto lg:pr-2 custom-scrollbar order-2 lg:order-1">
-        <section className="bg-white/5 rounded-2xl p-5 md:p-6 border border-white/10 shrink-0">
-          <h2 className="text-xs md:text-sm font-medium text-white/60 mb-4 flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Define Concept or Analyze Image
-          </h2>
-          <form onSubmit={handleGenerate} className="space-y-4">
+      <div className="flex flex-col gap-6 overflow-y-auto lg:pr-4 custom-scrollbar order-2 lg:order-1">
+        <section className="glass rounded-3xl p-6 md:p-8 shrink-0">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+              <Sparkles className="w-4 h-4 text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-xs font-bold text-white uppercase tracking-[0.15em]">Neural Input</h2>
+              <p className="text-[10px] text-white/30 uppercase mt-0.5 font-bold tracking-widest">Physical System Analysis</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleGenerate} className="space-y-6">
             {/* Image Upload Area */}
             {!image ? (
               <div 
@@ -229,29 +235,32 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
               </div>
             )}
 
-            <textarea
-              value={concept}
-              onChange={(e) => setConcept(e.target.value)}
-              placeholder={image ? "Describe what to simulate from this image (optional)..." : "e.g., Brownian motion of particles in a gas, or a double pendulum system..."}
-              className="w-full bg-black border border-white/10 rounded-xl p-3 md:p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all min-h-[100px] md:min-h-[120px] resize-none placeholder:text-white/20"
-            />
-            <button
-              type="submit"
-              disabled={loading || (!concept.trim() && !image)}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white font-semibold py-2.5 md:py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/10 text-sm"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
-                  Analyzing & Generating...
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 md:w-5 md:h-5" />
-                  {image ? 'Analyze & Simulate' : 'Generate Simulation'}
-                </>
-              )}
-            </button>
+            <div className="space-y-4">
+              <textarea
+                value={concept}
+                onChange={(e) => setConcept(e.target.value)}
+                placeholder={image ? "Enhanced analysis prompt (optional)..." : "Define physical system, e.g., 'Chaotic motion of a triple pendulum'..."}
+                className="w-full bg-black/40 border border-white/10 focus:border-indigo-500/30 rounded-2xl p-4 md:p-5 text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all min-h-[120px] md:min-h-[140px] resize-none placeholder:text-white/10 font-sans leading-relaxed"
+              />
+              <button
+                type="submit"
+                disabled={loading || (!concept.trim() && !image)}
+                className="relative w-full h-12 md:h-14 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-30 disabled:hover:bg-indigo-600 text-white font-bold rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-500/20 active:scale-[0.98] group overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="uppercase tracking-[0.1em] text-xs">Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5 fill-current" />
+                    <span className="uppercase tracking-[0.1em] text-xs font-bold">{image ? 'Neural Analysis' : 'Start Synthesis'}</span>
+                  </>
+                )}
+              </button>
+            </div>
           </form>
           {error && (
             <motion.div
@@ -272,13 +281,15 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-indigo-500/10 rounded-2xl p-5 md:p-6 border border-indigo-500/20 shrink-0"
+                  className="bg-indigo-500/[0.03] rounded-3xl p-6 md:p-8 border border-indigo-500/10 shadow-lg"
                 >
-                  <h2 className="text-xs md:text-sm font-medium text-indigo-300 mb-2 flex items-center gap-2">
-                    <Info className="w-4 h-4" />
-                    Scientific Explanation
-                  </h2>
-                  <p className="text-[11px] md:text-xs text-white/70 leading-relaxed italic">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                      <Info className="w-3.5 h-3.5 text-indigo-400" />
+                    </div>
+                    <h2 className="text-[11px] font-bold text-indigo-300 uppercase tracking-widest leading-none">Synthesis Report</h2>
+                  </div>
+                  <p className="text-[12px] text-white/50 leading-relaxed font-sans italic selection:bg-indigo-500/20">
                     {simulation.explanation}
                   </p>
                 </motion.section>
@@ -288,70 +299,95 @@ const SimulatorTab: React.FC<SimulatorTabProps> = ({ initialSimulation, onClearI
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="bg-white/5 rounded-2xl p-5 md:p-6 border border-white/10 shrink-0"
+                className="glass rounded-3xl p-6 md:p-8 shrink-0"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xs md:text-sm font-medium text-white/60 flex items-center gap-2">
-                    <Sliders className="w-4 h-4" />
-                    Parameters
-                  </h2>
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
+                      <Sliders className="w-3.5 h-3.5 text-white/40" />
+                    </div>
+                    <h2 className="text-[11px] font-bold text-white/60 uppercase tracking-widest leading-none">Calibration</h2>
+                  </div>
                   <button 
                     onClick={() => {
-                      const reset: Record<string, number> = {};
+                      const reset: Record<string, number | string> = {};
                       simulation.controls.forEach(c => reset[c.name] = c.default);
                       setControlValues(reset);
                     }}
-                    className="text-[10px] md:text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors"
+                    className="text-[10px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 transition-colors font-bold uppercase tracking-widest p-2 hover:bg-indigo-500/5 rounded-lg whitespace-nowrap"
                   >
                     <RefreshCw className="w-3 h-3" />
                     Reset
                   </button>
                 </div>
 
-                <div className="space-y-6 md:space-y-8">
+                <div className="space-y-8">
                   {simulation.controls.length > 0 ? (
                     simulation.controls.map((control) => (
-                      <div key={control.name} className="space-y-3">
-                        <div className="flex justify-between text-[11px] md:text-xs">
-                          <span className="text-white/80 font-mono">{control.name}</span>
-                          <span className="text-indigo-400 font-mono">{controlValues[control.name]?.toFixed(2)}</span>
+                      <div key={control.name} className="space-y-4">
+                        <div className="flex justify-between items-end">
+                          <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{control.name.replace(/([A-Z])/g, ' $1').trim()}</span>
+                          <span className="text-[13px] text-indigo-400 font-mono font-medium h-5 px-2 bg-indigo-500/5 rounded border border-indigo-500/10 flex items-center justify-center tabular-nums">
+                            {typeof controlValues[control.name] === 'number' 
+                              ? (controlValues[control.name] as number).toFixed(2) 
+                              : controlValues[control.name]}
+                          </span>
                         </div>
-                        <input
-                          type="range"
-                          min={control.min}
-                          max={control.max}
-                          step={(control.max - control.min) / 100}
-                          value={controlValues[control.name] ?? control.default}
-                          onChange={(e) => handleControlChange(control.name, parseFloat(e.target.value))}
-                          className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all"
-                        />
-                        <div className="flex justify-between text-[9px] md:text-[10px] text-white/20 font-mono">
-                          <span>{control.min}</span>
-                          <span>{control.max}</span>
-                        </div>
+                        
+                        {control.type === 'color' ? (
+                          <div className="flex items-center gap-4 p-3 bg-black/30 rounded-xl border border-white/5">
+                            <div className="relative w-12 h-8 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
+                              <input
+                                type="color"
+                                value={controlValues[control.name] as string ?? control.default}
+                                onChange={(e) => handleControlChange(control.name, e.target.value)}
+                                className="absolute inset-[-10px] w-[calc(100%+20px)] h-[calc(100%+20px)] bg-transparent border-none cursor-pointer"
+                              />
+                            </div>
+                            <span className="text-[11px] text-white/20 font-mono uppercase tracking-widest flex-1 truncate">
+                              {controlValues[control.name]}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <input
+                              type="range"
+                              min={control.min}
+                              max={control.max}
+                              step={control.min !== undefined && control.max !== undefined ? (control.max - control.min) / 100 : 0.01}
+                              value={controlValues[control.name] ?? control.default}
+                              onChange={(e) => handleControlChange(control.name, parseFloat(e.target.value))}
+                              className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all"
+                            />
+                            <div className="flex justify-between text-[9px] text-white/10 font-mono tracking-tighter">
+                              <span>MIN: {control.min}</span>
+                              <span>MAX: {control.max}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-6 md:py-8 text-white/20 italic text-sm">
-                      No adjustable parameters found for this simulation.
+                    <div className="text-center py-10 bg-black/20 rounded-2xl border border-dashed border-white/5">
+                      <p className="text-[11px] text-white/20 uppercase tracking-widest font-bold font-mono">No Parameters Available</p>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="grid grid-cols-2 gap-4 pt-4">
                     <button
                       onClick={handleSave}
                       disabled={saveLoading || !auth.currentUser}
-                      className="bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-50 text-white font-medium py-2 md:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-[11px] md:text-xs"
+                      className="bg-white/10 hover:bg-white/20 border border-white/10 disabled:opacity-20 text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2.5 transition-all text-[11px] uppercase tracking-widest active:scale-95"
                     >
-                      {saveLoading ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
-                      {saveLoading ? 'Saving...' : 'Save'}
+                      {saveLoading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} className="text-indigo-400" />}
+                      Save
                     </button>
                     <button
                       onClick={handleExport}
-                      className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-2 md:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-[11px] md:text-xs"
+                      className="bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2.5 transition-all text-[11px] uppercase tracking-widest active:scale-95"
                     >
-                      <Download size={12} />
-                      Export .js
+                      <Download size={14} className="text-indigo-400" />
+                      Export
                     </button>
                   </div>
                 </div>

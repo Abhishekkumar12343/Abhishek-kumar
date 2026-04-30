@@ -12,11 +12,13 @@ export const FEATURED_SIMULATIONS: Simulation[] = [
       var particleSize = 4;
       var connectionDist = 100;
       var bgColor = 10;
+      var particleColor = "#c8dcff";
 
       // @control Slider(50, 500, 200) var numParticles = 200;
       // @control Slider(1, 10, 2) var maxSpeed = 2;
       // @control Slider(2, 20, 4) var particleSize = 4;
       // @control Slider(50, 200, 100) var connectionDist = 100;
+      // @control Color("#c8dcff") var particleColor = "#c8dcff";
 
       function setup() {
         createCanvas(windowWidth, windowHeight);
@@ -43,7 +45,7 @@ export const FEATURED_SIMULATIONS: Simulation[] = [
           for (let j = i + 1; j < currentParticles.length; j++) {
             let d = dist(currentParticles[i].x, currentParticles[i].y, currentParticles[j].x, currentParticles[j].y);
             if (d < connectionDist) {
-              stroke(100, 150, 255, map(d, 0, connectionDist, 100, 0));
+              stroke(red(color(particleColor)), green(color(particleColor)), blue(color(particleColor)), map(d, 0, connectionDist, 100, 0));
               line(currentParticles[i].x, currentParticles[i].y, currentParticles[j].x, currentParticles[j].y);
             }
           }
@@ -68,7 +70,7 @@ export const FEATURED_SIMULATIONS: Simulation[] = [
         
         draw() {
           noStroke();
-          fill(200, 220, 255);
+          fill(particleColor);
           circle(this.x, this.y, particleSize);
         }
       }
@@ -78,10 +80,11 @@ export const FEATURED_SIMULATIONS: Simulation[] = [
       }
     `,
     controls: [
-      { name: 'numParticles', min: 50, max: 500, default: 200, value: 200 },
-      { name: 'maxSpeed', min: 1, max: 10, default: 2, value: 2 },
-      { name: 'particleSize', min: 2, max: 20, default: 4, value: 4 },
-      { name: 'connectionDist', min: 50, max: 200, default: 100, value: 100 }
+      { name: 'numParticles', min: 50, max: 500, default: 200, value: 200, type: 'range' },
+      { name: 'maxSpeed', min: 1, max: 10, default: 2, value: 2, type: 'range' },
+      { name: 'particleSize', min: 2, max: 20, default: 4, value: 4, type: 'range' },
+      { name: 'connectionDist', min: 50, max: 200, default: 100, value: 100, type: 'range' },
+      { name: 'particleColor', default: '#c8dcff', value: '#c8dcff', type: 'color' }
     ]
   },
   {

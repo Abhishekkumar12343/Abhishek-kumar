@@ -1,9 +1,10 @@
 export interface Control {
   name: string;
-  min: number;
-  max: number;
-  default: number;
-  value: number;
+  min?: number;
+  max?: number;
+  default: number | string;
+  value: number | string;
+  type?: 'range' | 'color';
 }
 
 export interface Simulation {
