@@ -1,55 +1,44 @@
-import { Request, Response } from "express";
-import * as gemini from "./lib/gemini";
-import cors from "cors";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Vercel serverless function entry point
-export default async function handler(req: any, res: any) {
-  // Simple CORS for Vercel
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+export async function generateSimulation(concept: string, prompt?: string) {
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  const fullPrompt = `
+You are a physics simulation expert. Generate a P5.js simulation for: "${concept}"
+${prompt ? `Additional instructions: ${prompt}` : ""}
 
-  try {
-    const { action, params } = req.body;
-    let result;
+Return ONLY a valid JSON object with this structure:
+{
+  "title": "simulation title",
+  "description": "brief description",
+  "p5Code": "complete p5.js code as string"
+}
+No extra text, only JSON.
+`;
 
-    switch (action) {
-      case 'chatWithGemini':
-        result = await gemini.chatWithGemini(params.messages, params.options);
-        break;
-      case 'generateImage':
-        result = await gemini.generateImage(params.prompt, params.options);
-        break;
-      case 'generateVideo':
-        result = await gemini.generateVideo(params.prompt, params.imageBase64, params.options);
-        break;
-      case 'analyzeMedia':
-        result = await gemini.analyzeMedia(params.prompt, params.mediaData);
-        break;
-      case 'transcribeAudio':
-        result = await gemini.transcribeAudio(params.audioBase64);
-        break;
-      case 'textToSpeech':
-        result = await gemini.textToSpeech(params.text);
-        break;
-      case 'generateSimulation':
-        result = await gemini.generateSimulation(params.concept, params.imageBase64);
-        break;
-      default:
-        return res.status(400).json({ error: 'Unknown action' });
-    }
+  const result = await model.generateContent(fullPrompt);
+  const response = await result.response;
+  const text = response.text();
 
-    res.status(200).json(result);
-  } catch (error: any) {
-    console.error('Gemini API Error:', error);
-    res.status(500).json({ error: error.message });
-  }
+  const clean = text.replace(/```json|```/g, "").trim();
+  return JSON.parse(clean);
+}
+
+export async function analyzeImage(base64Image: string, mimeType: string) {
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  const result = await model.generateContent([
+    {
+      inlineData: {
+        data: base64Image,
+        mimeType: mimeType,
+      },
+    },
+    "Analyze this machine/item and describe its physics principles for simulation.",
+  ]);
+
+  const response = await result.response;
+  return response.text();
 }
